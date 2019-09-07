@@ -5,7 +5,7 @@ python:
 
 
 env:
-    SECRET_KEY=somerandomkey
+    - SECRET_KEY=somerandomkey
 
 services:
     - postgresql

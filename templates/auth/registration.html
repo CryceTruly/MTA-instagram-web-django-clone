@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}
+   |  Register
+{% endblock %}
 
 {% block content %}
     <div class="row">
@@ -7,13 +10,13 @@
         <div class="col-md-6">
             <div class="row">
                 <div class="col-md-2"></div>
-                <div class="col-md-8">
-                    <div class="card mt-2 container">
+                <div class="col-md-8 mt-3">
+                    <div class="card  container">
                         <img class="card-img-top" src="{% static 'img/instagram-wordmark.svg' %}" height="" alt="Card image cap">
 
                         <div class="card-body">
                             <h5 class="card-title text-muted">Sign up to see photos and videos from your friends.</h5>
-                            <a href="#" class="btn btn-block btn-primary mr-4 btn-sm"> <i class="fab fa-facebook-f"></i>
+                            <a href="#" class="btn btn-block btn-primary mr-4 btn-sm"> <i class="fab fa-facebook"></i>
                                 Login with Facebook</a>
 
                             <div class="row">
@@ -28,62 +31,49 @@
                                 </div>
                             </div>
 
-                            <form class="mt-2" autocomplete="false">
+                            <form class="mt-2" autocomplete="off" method="post" action="{% url 'register' %}">
+                                {% csrf_token %}
+                               {% include 'partials/_messages.html' %}
                                 <div class="form-group">
 
                                     <input type="email" class="form-control form-control-sm"
-                                        placeholder="Mobile Number or Email">
+                                        placeholder="Email" name="email" value="{{data.email}}">
 
                                 </div>
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-sm" placeholder="Full Name">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Full Name" name="name"  value="{{data.name}}">
+                                </div>
+
+
+                                <div class="form-group">
+                                    <input type="text" class="form-control form-control-sm" placeholder="Username" name="username"  value="{{data.username}}">
                                 </div>
 
                                 <div class="form-group">
-                                    <input type="text" class="form-control form-control-sm" placeholder="Full Name">
+                                    <input type="password" class="form-control form-control-sm" placeholder="Password" name="password">
                                 </div>
-
-                                <div class="form-group">
-                                    <input type="text" class="form-control form-control-sm" placeholder="Username">
+                                 <div class="form-group">
+                                    <input type="password2" class="form-control form-control-sm" placeholder="Confirm Password" name="password2">
                                 </div>
-
-                                <div class="form-group">
-                                    <input type="password" class="form-control form-control-sm" placeholder="Password">
-                                </div>
-
                                 <input type="submit" class="btn btn-primary btn-block btn-sm" value="Sign up" />
-
-
                                 <div class="lower my-3 pl-3 pr-3">
                                     <small class="text-muted">
                                         By signing up, you agree to our Terms , Data Policy and Cookies Policy .
                                     </small>
                                 </div>
-
-
-
                             </form>
-
-
-
-
                         </div>
                     </div>
 
                     <div class="card mt-1">
                         <div class="card-body">
-                            <p class="text-center ">Have an account? <a href="login.html">Log in</a></p>
+                            <p class="text-center ">Have an account? <a href="{% url 'login' %}">Log in</a></p>
                         </div>
                     </div>
 
                 </div>
                 <div class="col-md-2"></div>
             </div>
-
-
-
-
-
 
         </div>
         <div class="col-md-3"></div>

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+        <div class="col-md-3"></div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <div class="card mt-5 container">
+
+                        <img class="card-img-top" src="{% static 'img/instagram-wordmark.svg' %}" height="" alt="Card image cap">
+                               {% include 'partials/_messages.html' %}
+                        <div class="card-body">
+                            <form class="mt-2" autocomplete="false">
+                                <div class="form-group">
+
+                                    <input type="email" class="form-control form-control-sm"
+                                        placeholder="Mobile Number or Email">
+
+                                </div>
+
+                                <div class="form-group">
+                                    <input type="password" class="form-control form-control-sm" placeholder="Password">
+                                </div>
+
+                                <input type="submit" class="btn btn-primary btn-block btn-sm" value="Log in" onclick="btnClicked" />
+                                <div class="lower mt-3">
+                                    <div class="row">
+                                <div class="col-md-5">
+                                    <hr class="ml-1">
+                                </div>
+                                <div class="col-md-2">
+                                    <small class="text-muted">OR</small>
+                                </div>
+                                <div class="col-md-5">
+                                    <hr class="mr-1">
+                                </div>
+                            </div>
+                                    <a href="#" class="btn btn-block btn-sm"> <i class="fab fa-facebook"></i>
+                                        Login with Facebook</a>
+                                    <p class="text-center">
+                                        <a class="text-center" href="forgot.html"><small>Forgot Password?</small> </a>
+                                    </p>
+                                </div>
+
+
+
+                            </form>
+
+
+
+
+                        </div>
+
+                    </div>
+                    <div class="card mt-1">
+                        <div class="card-body">
+                            <p class="text-center">Don't have an account? <a href="{% url 'register' %}">Sign up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3"></div>
+            </div>
+
+
+
+
+
+
+
+
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+{% endblock %}

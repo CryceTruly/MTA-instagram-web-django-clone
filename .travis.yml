@@ -7,7 +7,7 @@ services:
     - postgresql
 
 install:
-    - pipenv install
+    - pipenv install  --skip-lock
 script:
     - coverage run --source='instagram/apps' manage.py test && coverage report
 

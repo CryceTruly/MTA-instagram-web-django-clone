@@ -136,3 +136,5 @@ MESSAGE_TAGS = {
 
 
 django_heroku.settings(locals())
+
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

@@ -2,14 +2,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.contrib.messages import get_messages
-
-
-# Create your views here.
-
-def Index(request):
-    return render(request, 'index.html')
-
+from validate_email import validate_email
 
 class RegistrationView(View):
     def get(self, request):
@@ -31,13 +24,13 @@ class RegistrationView(View):
         if username == '':
             messages.add_message(request, messages.ERROR, 'username are required')
             context['has_error'] = True
-        if email == '':
-            messages.add_message(request, messages.ERROR, 'email are required')
+        if email == '' or not validate_email(email):
+            messages.add_message(request, messages.ERROR, 'provide a valid email')
             context['has_error'] = True
         if fullname == '':
             messages.add_message(request, messages.ERROR, 'fullname are required')
             context['has_error'] = True
-        if (password or password2) == '':
+        if password == '' or password2 == '':
             messages.add_message(request, messages.ERROR, 'Passwords are required')
             context['has_error'] = True
         if password != password2:
@@ -67,7 +60,5 @@ class LoginView(View):
     def get(self, request):
         return render(request, 'auth/login.html')
 
-
     def post(self, request):
-
         return render(request, 'auth/login.html')

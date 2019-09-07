@@ -97,7 +97,7 @@ class LoginView(View):
         if context['has_error']:
             return render(request, 'auth/login.html', context, status=400)
         login(request, user)
-        return redirect('profile')
+        return redirect('home')
 
 
 

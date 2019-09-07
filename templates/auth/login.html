@@ -13,19 +13,20 @@
                         <img class="card-img-top" src="{% static 'img/instagram-wordmark.svg' %}" height="" alt="Card image cap">
                                {% include 'partials/_messages.html' %}
                         <div class="card-body">
-                            <form class="mt-2" autocomplete="false">
+                            <form class="mt-2" autocomplete="off" action="{% url 'login' %}" method="post">
+                                {% csrf_token %}
                                 <div class="form-group">
 
-                                    <input type="email" class="form-control form-control-sm"
-                                        placeholder="Mobile Number or Email">
+                                    <input type="text" class="form-control form-control-sm"
+                                        placeholder="Username" name="username" value="{{ data.username }}">
 
                                 </div>
 
                                 <div class="form-group">
-                                    <input type="password" class="form-control form-control-sm" placeholder="Password">
+                                    <input type="password" class="form-control form-control-sm" placeholder="Password" name="password">
                                 </div>
 
-                                <input type="submit" class="btn btn-primary btn-block btn-sm" value="Log in" onclick="btnClicked" />
+                                <input type="submit" class="btn btn-primary btn-block btn-sm" value="Log in" />
                                 <div class="lower mt-3">
                                     <div class="row">
                                 <div class="col-md-5">

@@ -11,8 +11,8 @@ django-heroku = "*"
 psycopg2 = "==2.7.7"
 coverage = "*"
 coveralls = "*"
-install = "*"
 psycopg2-binary = "*"
+validate-email = "*"
 
 [requires]
 python_version = "3.7"

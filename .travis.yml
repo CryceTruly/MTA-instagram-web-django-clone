@@ -3,11 +3,15 @@ language: python
 python:
     - "3.7"
 
+
+env:
+    SECRET_KEY=somerandomkey
+
 services:
     - postgresql
 
 install:
-    - pipenv install  --skip-lock
+    - pipenv install
 script:
     - coverage run --source='instagram/apps' manage.py test && coverage report
 

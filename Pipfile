@@ -13,6 +13,7 @@ coverage = "*"
 coveralls = "*"
 psycopg2-binary = "*"
 validate-email = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"

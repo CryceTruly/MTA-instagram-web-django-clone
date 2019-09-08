@@ -50,8 +50,8 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_URL = 'logout'
 LOGOUT_REDIRECT_URL = 'login'
-SOCIAL_AUTH_FACEBOOK_SECRET = '18962b160898727a3601c2f9341badf2'
-SOCIAL_AUTH_FACEBOOK_KEY = '434932140454051'
+SOCIAL_AUTH_FACEBOOK_SECRET =os.environ.get('SOCIAL_AUTH_FACEBOOK_SECRET', '')
+SOCIAL_AUTH_FACEBOOK_KEY = os.environ.get('SOCIAL_AUTH_FACEBOOK_KEY', '')
 SOCIAL_AUTH_FACEBOOK_SCOPE = ['email', 'user_link']
 SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id, name, email, picture.type(large), link'
@@ -159,11 +159,11 @@ MESSAGE_TAGS = {
     messages.INFO: 'info'
 }
 
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'landvilleng@gmail.com'
-EMAIL_HOST_PASSWORD = '@landvilleng.'
-EMAIL_PORT = 587
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '')
+EMAIL_HOST =  os.environ.get('EMAIL_HOST', '')
+EMAIL_HOST_USER =  os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD =  os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_PORT =  os.environ.get('EMAIL_PORT', '')
 
 django_heroku.settings(locals())
 

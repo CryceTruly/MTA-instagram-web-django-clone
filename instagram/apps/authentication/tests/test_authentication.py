@@ -1,5 +1,10 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.contrib.auth.models import User
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+
+from instagram.apps.authentication.utils import account_activation_token
 
 
 class BaseTest(TestCase):
@@ -92,6 +97,48 @@ class LoginTest(BaseTest):
         response = self.client.get(self.login_url)
         self.assertTemplateUsed(response, 'auth/login.html')
 
-    def test_posts_correct_to_login(self):
-        response = self.client.post(self.login_url)
-        self.assertEqual(response.status_code, 400)
+    def test_should_ogin_successfully(self):
+        self.client.post(self.register_url, self.user, format='text/html')
+        user = User.objects.first()
+        user.is_active = True
+        user.save()
+        response = self.client.post(self.login_url, self.user, format='text/html')
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_should_notlogin_successfully_when_not_verified(self):
+        self.client.post(self.register_url, self.user, format='text/html')
+        response = self.client.post(self.login_url, self.user, format='text/html')
+        self.assertEqual(response.status_code, 401)
+
+    def test_should_notlogin_successfully_when_nopassword(self):
+        response = self.client.post(self.login_url, self.user_no_password, format='text/html')
+        self.assertEqual(response.status_code, 401)
+
+    def test_should_notlogin_successfully_when_nousername(self):
+        response = self.client.post(self.login_url, self.user_no_username, format='text/html')
+        self.assertEqual(response.status_code, 401)
+
+
+class UserVerificationTest(BaseTest):
+    def test_correct_user_verifies_correctly(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        user.set_password('pass1234')
+        user.is_active = False
+        user.save()
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.get(reverse('activate', kwargs={'uidb64': uid, 'token': token}))
+        self.assertEqual(res.status_code, 302)
+        self.assertTrue(User.objects.get(email='testuser@gmail.com').is_active)
+
+    def test_verification_fails_with(self):
+        res = self.client.get(reverse('activate', kwargs={'uidb64': 'uid', 'token': 'token'}))
+        self.assertEqual(res.status_code, 401)
+
+
+class ProfileTest(BaseTest):
+    def test_user_sees_profile_page(self):
+        res=self.client.get(reverse('home'))
+        self.assertEqual(res.status_code,200)
+        self.assertTemplateUsed(res,'auth/profile.html')

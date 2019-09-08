@@ -11,6 +11,8 @@ from validate_email import validate_email
 from instagram.apps.authentication.utils import account_activation_token
 from django.conf import settings
 from django.contrib.auth import authenticate, login
+
+
 class RegistrationView(View):
     def get(self, request):
         return render(request, 'auth/registration.html')
@@ -67,7 +69,8 @@ class RegistrationView(View):
             'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
             'token': account_activation_token.make_token(new_user),
         })
-        send_mail(message=message,from_email=settings.EMAIL_HOST_USER,html_message=message,subject=email_subject,recipient_list=[new_user.email])
+        send_mail(message=message, from_email=settings.EMAIL_HOST_USER, html_message=message, subject=email_subject,
+                  recipient_list=[new_user.email])
         messages.add_message(request, messages.SUCCESS, 'Account created successfully,please visit your Email to '
                                                         'verify your Account')
         return redirect('login')
@@ -95,10 +98,9 @@ class LoginView(View):
             messages.add_message(request, messages.ERROR, 'Bad login credentials')
             context['has_error'] = True
         if context['has_error']:
-            return render(request, 'auth/login.html', context, status=400)
+            return render(request, 'auth/login.html', context, status=401)
         login(request, user)
         return redirect('home')
-
 
 
 class VerificationView(View):
@@ -113,11 +115,9 @@ class VerificationView(View):
             user.save()
             messages.add_message(request, messages.INFO, "Account has been activated,you may login now")
             return redirect('login')
-        return render(request, "auth/invalid_activation.html")
-
+        return render(request, "auth/invalid_activation.html", status=401)
 
 
 class ProfileView(View):
-    def get(self,request):
-        return render(request,'auth/profile.html')
-
+    def get(self, request):
+        return render(request, 'auth/profile.html')

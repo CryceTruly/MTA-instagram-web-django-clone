@@ -13,6 +13,8 @@ coverage = "*"
 coveralls = "*"
 psycopg2-binary = "*"
 validate-email = "*"
+gunicorn = "*"
+social-auth-app-django = "*"
 
 [requires]
 python_version = "3.7"

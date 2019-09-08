@@ -13,7 +13,7 @@ services:
 install:
     - pipenv install
 script:
-    - coverage run --source='instagram/apps' manage.py test && coverage report
+    - coverage run --source='instagram/apps' manage.py test && coverage report && coverage html
 
 after_success:
     - coveralls

@@ -2,7 +2,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_text, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.views.generic import View
 from django.contrib.auth.models import User
@@ -134,12 +134,12 @@ class RequestResetLinkView(View):
         email = request.POST.get('email')
         if not validate_email(email=email):
             messages.add_message(request, messages.ERROR, 'please provide a valid email')
-            return render(request, 'auth/reset-password.html', context)
+            return render(request, 'auth/reset-password.html', context,status=400)
         current_site = get_current_site(request)
         user = User.objects.filter(email=email).first()
         if not user:
             messages.add_message(request, messages.ERROR, 'Details not found,please consider a signup')
-            return render(request, 'auth/reset-password.html', context)
+            return render(request, 'auth/reset-password.html', context,status= 404)
 
         email_subject = 'Reset your Password'
         message = render_to_string('auth/finish-reset.html', {
@@ -161,27 +161,28 @@ class CompletePasswordChangeView(View):
             user = User.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, User.DoesNotExist):
             user = None
-        if user is None and account_activation_token.check_token(user, token):
+        if user is None or not account_activation_token.check_token(user, token):
             messages.add_message(request, messages.WARNING, 'Link is no longer valid,please request a new one')
-            return render(request, 'auth/reset-password.html')
+            return render(request, 'auth/reset-password.html',status=401)
         return render(request, 'auth/change-password.html',context={'uidb64':uidb64,'token':token})
 
     def post(self, request,uidb64, token):
-        uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
         context = {'uidb64': uidb64, 'token': token}
-        if user:
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
             password=request.POST.get('password')
             password2 = request.POST.get('password2')
             if len(password) < 6:
                 messages.add_message(request, messages.ERROR, 'Password should be at least 6 characters long')
-                return render(request, 'auth/change-password.html',context)
+                return render(request, 'auth/change-password.html',context,status=400)
             if password != password2:
                 messages.add_message(request, messages.ERROR, 'Passwords must match')
-                return render(request, 'auth/change-password.html', context)
+                return render(request, 'auth/change-password.html', context,status=400)
             user.set_password(password)
             user.save()
             messages.add_message(request, messages.INFO, 'Password changed successful,login with your new password')
             return redirect('login')
-        messages.add_message(request, messages.ERROR, 'Something went wrong,you could not update your password')
-        return render(request, 'auth/change-password.html',context)
+        except DjangoUnicodeDecodeError:
+            messages.add_message(request, messages.ERROR, 'Something went wrong,you could not update your password')
+            return render(request, 'auth/change-password.html',context,status=401)

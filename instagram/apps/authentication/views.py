@@ -121,3 +121,45 @@ class VerificationView(View):
 class ProfileView(View):
     def get(self, request):
         return render(request, 'auth/profile.html')
+
+
+class RequestResetLinkView(View):
+    def get(self, request):
+        return render(request, 'auth/reset-password.html')
+
+    def post(self, request):
+        context = {
+            'data': request.POST
+        }
+        email = request.POST.get('email')
+        if not validate_email(email=email):
+            messages.add_message(request, messages.ERROR, 'please provide a valid email')
+            return render(request, 'auth/reset-password.html', context)
+        current_site = get_current_site(request)
+        user = User.objects.filter(email=email).first()
+        if not user:
+            messages.add_message(request, messages.ERROR, 'Details not found,please consider a signup')
+            return render(request, 'auth/reset-password.html', context)
+
+        email_subject = 'Reset your Password'
+        message = render_to_string('auth/finish-reset.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        send_mail(message=message, from_email=settings.EMAIL_HOST_USER, html_message=message, subject=email_subject,
+                  recipient_list=[user.email])
+        messages.add_message(request, messages.INFO, 'We have sent you an email with a link to reset your password')
+        return render(request, 'auth/reset-password.html', context)
+
+
+class CompletePasswordChangeView(View):
+    def get(self, request, uidb64, token):
+        return render(request, 'auth/change-password.html')
+
+    def post(self, request):
+        context = {
+            'data':request.POST
+        }
+        return render(request, 'auth/change-password.html',context)

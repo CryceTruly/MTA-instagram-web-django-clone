@@ -1,5 +1,48 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<h1>Welcome {{ user.email }}</h1>
+
+{% include 'partials/_nav.html' %}
+        <div class="row">
+            <div class="col-md-2"></div>
+
+            <div class="col-md-8">
+                <div class="container">
+
+
+                <section class="profile mt-4">
+                    <div class="row">
+
+                        <div class="col-md-4 pl-5">
+                            <div class="container">
+
+
+                            <img src="https://avatars1.githubusercontent.com/u/20795487?s=400&v=4" height="150"
+                                class="rounded rounded-circle" alt="" srcset="">
+                        </div>
+
+                            </div>
+                        <div class="col-md-8">
+                            <h5>{{ user.username }} <a href="profiledit.html" class="btn btn-outline-dark btn-sm ml-3">Edit
+                                    Profile</a><img class="ml-3" src="{% static 'img/settings.png' %}" height="30" width="30" /></h5>
+                            <div class="row">
+                                <div class="col-md-4"><b>455</b> Posts</div>
+                                <div class="col-md-4"><b>888k</b> Followers</div>
+                                <div class="col-md-4"><b>500</b> Following</div>
+                            </div>
+                            <h4 class="mt-4 py-0">{{ user.first_name }}</h4>
+                            <p class="text-sm">Learn a new skill and grow everyday.</p>
+                                <p>{{user.email}}</p>
+                            <a href="https://www.youtube.com/channel/UCQM4dR3UREnGIHz93zRw_0Q">https://www.youtube.com/channel/UCQM4dR3UREnGIHz93zRw_0Q</a>
+
+
+                        </div>
+                    </div>
+                </section>
+            </div>
+                  </div>
+            <div class="col-md-2"></div>
+        </div>
+
+
 {% endblock %}

@@ -10,7 +10,7 @@ from django.contrib import messages
 from validate_email import validate_email
 from instagram.apps.authentication.utils import account_activation_token
 from django.conf import settings
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login,logout
 
 
 class RegistrationView(View):
@@ -181,8 +181,16 @@ class CompletePasswordChangeView(View):
                 return render(request, 'auth/change-password.html', context,status=400)
             user.set_password(password)
             user.save()
-            messages.add_message(request, messages.INFO, 'Password changed successful,login with your new password')
+            messages.add_message(request, messages.INFO, 'Password changed successfully,login with your new password')
             return redirect('login')
         except DjangoUnicodeDecodeError:
             messages.add_message(request, messages.ERROR, 'Something went wrong,you could not update your password')
             return render(request, 'auth/change-password.html',context,status=401)
+
+
+class LogoutView(View):
+    def post(self,request):
+        messages.add_message(request,messages.SUCCESS,'You have successfully logged out')
+        logout(request)
+        return redirect('login')
+

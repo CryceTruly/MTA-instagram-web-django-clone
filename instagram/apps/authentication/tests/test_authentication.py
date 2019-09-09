@@ -226,8 +226,13 @@ class CompletePasswordChangeViewTest(BaseTest):
 
     def test_innextistent_user_cannot_reset(self):
         user = User.objects.create_user('testuser', 'testuser@gmail.com')
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
         res = self.client.post(reverse('change-password', kwargs={'uidb64': 'test', 'token': token}),
                                self.password_data, format='text/html')
         self.assertEqual(res.status_code, 401)
+
+
+class LogutViewTest(BaseTest):
+    def test_user_can_logout(self):
+        res = self.client.post(reverse('logout'), format='text/html')
+        self.assertEqual(res.status_code, 302)

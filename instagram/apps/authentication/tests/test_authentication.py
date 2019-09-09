@@ -138,7 +138,6 @@ class UserVerificationTest(BaseTest):
 
 
 class ProfileTest(BaseTest):
-    def test_user_sees_profile_page(self):
+    def test_unauthenticated_user_does_not_see_profile(self):
         res=self.client.get(reverse('home'))
-        self.assertEqual(res.status_code,200)
-        self.assertTemplateUsed(res,'auth/profile.html')
+        self.assertEqual(res.status_code,302)

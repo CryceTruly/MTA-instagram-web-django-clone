@@ -156,10 +156,32 @@ class RequestResetLinkView(View):
 
 class CompletePasswordChangeView(View):
     def get(self, request, uidb64, token):
-        return render(request, 'auth/change-password.html')
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is None and account_activation_token.check_token(user, token):
+            messages.add_message(request, messages.WARNING, 'Link is no longer valid,please request a new one')
+            return render(request, 'auth/reset-password.html')
+        return render(request, 'auth/change-password.html',context={'uidb64':uidb64,'token':token})
 
-    def post(self, request):
-        context = {
-            'data':request.POST
-        }
+    def post(self, request,uidb64, token):
+        uid = force_text(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+        context = {'uidb64': uidb64, 'token': token}
+        if user:
+            password=request.POST.get('password')
+            password2 = request.POST.get('password2')
+            if len(password) < 6:
+                messages.add_message(request, messages.ERROR, 'Password should be at least 6 characters long')
+                return render(request, 'auth/change-password.html',context)
+            if password != password2:
+                messages.add_message(request, messages.ERROR, 'Passwords must match')
+                return render(request, 'auth/change-password.html', context)
+            user.set_password(password)
+            user.save()
+            messages.add_message(request, messages.INFO, 'Password changed successful,login with your new password')
+            return redirect('login')
+        messages.add_message(request, messages.ERROR, 'Something went wrong,you could not update your password')
         return render(request, 'auth/change-password.html',context)

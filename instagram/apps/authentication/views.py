@@ -1,3 +1,5 @@
+import threading
+
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.shortcuts import render, redirect
@@ -10,7 +12,20 @@ from django.contrib import messages
 from validate_email import validate_email
 from instagram.apps.authentication.utils import account_activation_token
 from django.conf import settings
-from django.contrib.auth import authenticate, login,logout
+from django.contrib.auth import authenticate, login, logout
+
+
+class EmailThread(threading.Thread):
+    def __init__(self, subject, html_content, from_email, recipient_list):
+        self.subject = subject
+        self.recipient_list = recipient_list
+        self.html_content = html_content
+        self.from_email=from_email
+        threading.Thread.__init__(self)
+
+    def run(self):
+        send_mail(message=self.html_content, from_email=settings.EMAIL_HOST_USER, subject=self.subject,
+                  recipient_list=[self.recipient_list])
 
 
 class RegistrationView(View):
@@ -69,8 +84,7 @@ class RegistrationView(View):
             'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
             'token': account_activation_token.make_token(new_user),
         })
-        send_mail(message=message, from_email=settings.EMAIL_HOST_USER, html_message=message, subject=email_subject,
-                  recipient_list=[new_user.email])
+        EmailThread(subject=email_subject, from_email=settings.EMAIL_HOST_USER,html_content=message, recipient_list=new_user.email).start()
         messages.add_message(request, messages.SUCCESS, 'Account created successfully,please visit your Email to '
                                                         'verify your Account')
         return redirect('login')
@@ -134,12 +148,12 @@ class RequestResetLinkView(View):
         email = request.POST.get('email')
         if not validate_email(email=email):
             messages.add_message(request, messages.ERROR, 'please provide a valid email')
-            return render(request, 'auth/reset-password.html', context,status=400)
+            return render(request, 'auth/reset-password.html', context, status=400)
         current_site = get_current_site(request)
         user = User.objects.filter(email=email).first()
         if not user:
             messages.add_message(request, messages.ERROR, 'Details not found,please consider a signup')
-            return render(request, 'auth/reset-password.html', context,status= 404)
+            return render(request, 'auth/reset-password.html', context, status=404)
 
         email_subject = 'Reset your Password'
         message = render_to_string('auth/finish-reset.html', {
@@ -148,8 +162,7 @@ class RequestResetLinkView(View):
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': account_activation_token.make_token(user),
         })
-        send_mail(message=message, from_email=settings.EMAIL_HOST_USER, html_message=message, subject=email_subject,
-                  recipient_list=[user.email])
+        EmailThread(subject=email_subject,from_email=settings.EMAIL_HOST_USER, html_content=message, recipient_list=user.email).start()
         messages.add_message(request, messages.INFO, 'We have sent you an email with a link to reset your password')
         return render(request, 'auth/reset-password.html', context)
 
@@ -163,34 +176,33 @@ class CompletePasswordChangeView(View):
             user = None
         if user is None or not account_activation_token.check_token(user, token):
             messages.add_message(request, messages.WARNING, 'Link is no longer valid,please request a new one')
-            return render(request, 'auth/reset-password.html',status=401)
-        return render(request, 'auth/change-password.html',context={'uidb64':uidb64,'token':token})
+            return render(request, 'auth/reset-password.html', status=401)
+        return render(request, 'auth/change-password.html', context={'uidb64': uidb64, 'token': token})
 
-    def post(self, request,uidb64, token):
+    def post(self, request, uidb64, token):
         context = {'uidb64': uidb64, 'token': token}
         try:
             uid = force_text(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
-            password=request.POST.get('password')
+            password = request.POST.get('password')
             password2 = request.POST.get('password2')
             if len(password) < 6:
                 messages.add_message(request, messages.ERROR, 'Password should be at least 6 characters long')
-                return render(request, 'auth/change-password.html',context,status=400)
+                return render(request, 'auth/change-password.html', context, status=400)
             if password != password2:
                 messages.add_message(request, messages.ERROR, 'Passwords must match')
-                return render(request, 'auth/change-password.html', context,status=400)
+                return render(request, 'auth/change-password.html', context, status=400)
             user.set_password(password)
             user.save()
             messages.add_message(request, messages.INFO, 'Password changed successfully,login with your new password')
             return redirect('login')
         except DjangoUnicodeDecodeError:
             messages.add_message(request, messages.ERROR, 'Something went wrong,you could not update your password')
-            return render(request, 'auth/change-password.html',context,status=401)
+            return render(request, 'auth/change-password.html', context, status=401)
 
 
 class LogoutView(View):
-    def post(self,request):
-        messages.add_message(request,messages.SUCCESS,'You have successfully logged out')
+    def post(self, request):
+        messages.add_message(request, messages.SUCCESS, 'You have successfully logged out')
         logout(request)
         return redirect('login')
-

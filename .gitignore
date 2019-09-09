@@ -84,10 +84,11 @@ docs/_build/
 htmlcov
 # PyBuilder
 target/
-
+.vscode/
+.vscode
 # Jupyter Notebook
 .ipynb_checkpoints
-
+*/__pycache__/*
 # IPython
 profile_default/
 ipython_config.py

@@ -11,6 +11,7 @@ class BaseTest(TestCase):
     def setUp(self):
         self.register_url = reverse('register')
         self.login_url = reverse('login')
+        self.reset_url = reverse('reset-password')
         self.user = {
             'name': 'last_name',
             'username': 'username',
@@ -56,6 +57,19 @@ class BaseTest(TestCase):
             'password2': '',
         }
 
+        self.password_data = {
+            "password": "password1!",
+            "password2": "password1!"
+        }
+        self.short_password_data = {
+            "password": "pass",
+            "password2": "pass"
+        }
+        self.unmatching_password_data = {
+            "password": "password1!",
+            "password2": "password1!2"
+        }
+
 
 class RegistrationTest(BaseTest):
     def test_correct_html_used(self):
@@ -97,7 +111,7 @@ class LoginTest(BaseTest):
         response = self.client.get(self.login_url)
         self.assertTemplateUsed(response, 'auth/login.html')
 
-    def test_should_ogin_successfully(self):
+    def test_should_login_successfully(self):
         self.client.post(self.register_url, self.user, format='text/html')
         user = User.objects.first()
         user.is_active = True
@@ -138,7 +152,82 @@ class UserVerificationTest(BaseTest):
 
 
 class ProfileTest(BaseTest):
-    def test_user_sees_profile_page(self):
-        res=self.client.get(reverse('home'))
-        self.assertEqual(res.status_code,200)
-        self.assertTemplateUsed(res,'auth/profile.html')
+    def test_unauthenticated_user_does_not_see_profile(self):
+        res = self.client.get(reverse('home'))
+        self.assertEqual(res.status_code, 302)
+
+    def test_authenticated_users_see_profile(self):
+        self.client.post(self.register_url, self.user, format='text/html')
+        user = User.objects.first()
+        user.is_active = True
+        user.save()
+        self.client.login(
+            username=self.user['username'], password=self.user['password'])
+        res = self.client.get(reverse('home'))
+        self.assertEqual(res.status_code, 200)
+
+
+class RequestResetLinkViewTest(BaseTest):
+    def test_user_can_see_page_torequest_link(self):
+        response = self.client.get(self.reset_url);
+        self.assertTemplateUsed(response, 'auth/reset-password.html')
+        self.assertEqual(response.status_code, 200)
+
+    def test_unexistent_user_cant_reset_account(self):
+        res = self.client.post(self.reset_url, {'email': self.user['email']}, format='text/html')
+        self.assertEqual(res.status_code, 404)
+
+    def test_user_can_reset_account_with_bad_email(self):
+        res = self.client.post(self.reset_url, {'email': self.user['username']}, format='text/html')
+        self.assertEqual(res.status_code, 400)
+
+    def test_registered_user_should_reset_password(self):
+        self.client.post(self.register_url, self.user, format='text/html')
+        res = self.client.post(self.reset_url, {'email': self.user['email']}, format='text/html')
+        self.assertEqual(res.status_code, 200)
+
+
+class CompletePasswordChangeViewTest(BaseTest):
+
+    def test_user_with_details_can_see_reset_page(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.get(reverse('change-password', kwargs={'uidb64': uid, 'token': token}))
+        self.assertEqual(res.status_code, 200)
+
+    def test_user_with_invalid_or_tampered_details_cant_see_reset_page(self):
+        res = self.client.get(reverse('change-password', kwargs={'uidb64': 'test', 'token': 'test'}))
+        self.assertEqual(res.status_code, 401)
+
+    def test_user_can_change_password(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.post(reverse('change-password', kwargs={'uidb64': uid, 'token': token}), self.password_data,
+                               format='text/html')
+        self.assertEqual(res.status_code, 302)
+
+    def test_user_cannot_reset_with_unmatching_passwords(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.post(reverse('change-password', kwargs={'uidb64': uid, 'token': token}),
+                               self.unmatching_password_data, format='text/html')
+        self.assertEqual(res.status_code, 400)
+
+    def test_user_cannot_reset_with_short_passwords(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.post(reverse('change-password', kwargs={'uidb64': uid, 'token': token}),
+                               self.short_password_data, format='text/html')
+        self.assertEqual(res.status_code, 400)
+
+    def test_innextistent_user_cannot_reset(self):
+        user = User.objects.create_user('testuser', 'testuser@gmail.com')
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = account_activation_token.make_token(user)
+        res = self.client.post(reverse('change-password', kwargs={'uidb64': 'test', 'token': token}),
+                               self.password_data, format='text/html')
+        self.assertEqual(res.status_code, 401)

@@ -1,6 +1,6 @@
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
@@ -169,7 +169,7 @@ class ProfileTest(BaseTest):
 
 class RequestResetLinkViewTest(BaseTest):
     def test_user_can_see_page_torequest_link(self):
-        response = self.client.get(self.reset_url);
+        response = self.client.get(self.reset_url)
         self.assertTemplateUsed(response, 'auth/reset-password.html')
         self.assertEqual(response.status_code, 200)
 
